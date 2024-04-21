@@ -1,7 +1,8 @@
-import { useRef, useState, useEffect, useCallback, memo } from 'react';
+import { useRef, useState, useEffect, useCallback} from 'react';
 import './App.css'
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import GeminieLogoSvg from './svg/GeminieLogoSvg';
+import PropTypes from 'prop-types'
 function App() { 
   const API_KEY = 'AIzaSyCPiMP9ouF6cjgTlhiPPZXBWsrdRNZckd8'
   const genAI = new GoogleGenerativeAI(API_KEY);
@@ -150,24 +151,22 @@ function App() {
 }
 
 
-// eslint-disable-next-line react/prop-types
+
 const TextFormatter = ({ text }) => {
-  // Function to parse and format text
+
   const formatText = (input) => {
     const elements = [];
     let cursor = 0;
 
     while (cursor < input.length) {
       if (input[cursor] === '*' && input[cursor + 1] === '*') {
-        // Find the closing '**'
         const end = input.indexOf('**', cursor + 2);
         if (end !== -1) {
           elements.push(<h1 >{input.substring(cursor + 2, end)}</h1>);
           cursor = end + 2;
           continue;
         }
-      } else if (input[cursor] === '`') {
-        // Find the closing '`'
+      } else if (input[cursor] === '`') {    
         const end = input.indexOf('`', cursor + 1);
         if (end !== -1) {
           elements.push(<code className='!whitespace-pre'>{input.substring(cursor + 1, end)}</code>);
@@ -176,7 +175,6 @@ const TextFormatter = ({ text }) => {
         }
       }
 
-      // Handle normal text
       const nextSpecialChar = input.slice(cursor).search(/[*`]/);
       if (nextSpecialChar !== -1) {
         elements.push(input.substring(cursor, cursor + nextSpecialChar));
@@ -196,6 +194,11 @@ const TextFormatter = ({ text }) => {
     </div>
   );
 };
+
+TextFormatter.propTypes = {
+  text: PropTypes.string.isRequired
+}
+
 export default App
 
 

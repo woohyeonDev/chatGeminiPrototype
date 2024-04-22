@@ -13,9 +13,15 @@ function App() {
   const [input, setInput] = useState('');
   const [chat, setChat]=useState([])    
  
-
   const scrollToBottom = useCallback(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const adjustHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    textarea.style.height = 'auto';
+    const maxHeight = window.innerHeight * 0.5;
+    textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
   }, []);
 
   const handleInputChange = (event) => {
@@ -28,13 +34,6 @@ function App() {
       sendMessage(); 
     }
   };
-
-  const adjustHeight = useCallback(() => {
-    const textarea = textareaRef.current;
-    textarea.style.height = 'auto';
-    const maxHeight = window.innerHeight * 0.5;
-    textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
-  }, []);
   
   const sendMessage = async () => {    
     const prompt = input    
@@ -48,11 +47,11 @@ function App() {
 
   useEffect(() => {
     adjustHeight();
-  }, [input, adjustHeight]);
+  }, [input]);
 
   useEffect(() => {
     scrollToBottom();  // Scroll to bottom every time the chat updates
-  }, [chat, scrollToBottom]);
+  }, [chat]);
 
   return (
     <>
@@ -62,7 +61,7 @@ function App() {
             <div className=' w-full flex items-center px-1  space-x-2'>
               <GeminieLogoSvg />
               <div className=' font-bold'>
-                Geminie
+                Gemini
               </div>
             </div>              
           </div>      
@@ -89,18 +88,11 @@ function App() {
             <div className=' w-[60vw]'>
               {chat.map((r, i)=>(
                 <div key={i} className=' mb-6' ref={chatEndRef}> 
-                  <div className=''>
-                    {r.name}
-                  </div>
-                  <div>
-                    <MemoizedTextFormatter key={i} text={r.text} />
-                  </div>                  
+                    <MemoizedTextFormatter key={i} role={r.name} text={r.text} />                            
                 </div>
               ))}              
-            </div>
-            
+            </div>            
           </div>
-
 
           <div className=' absolute bottom-0 w-full flex justify-center '>
             <div className=' w-[60vw] bg-whtie flex justify-center flex-wrap'>
@@ -120,8 +112,7 @@ function App() {
                         pl-10
                         min-h-10
                       "
-                      value={input}
-                      onInput={adjustHeight}
+                      value={input}   
                       onChange={handleInputChange}   
                       onKeyDown={handleKeyDown}               
                       rows="1"
@@ -139,7 +130,7 @@ function App() {
                 </div>
               </div>     
               <div className=' text-gray-300 text-xs'> 
-                Geminie는 실수를 할 수도 있습니다. 중요한 정보를 확인해보세요
+                Gemini는 실수를 할 수도 있습니다. 중요한 정보를 확인해보세요
               </div>
             </div>            
           </div>

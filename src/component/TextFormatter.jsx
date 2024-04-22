@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import { memo } from 'react';
 
-export function TextFormatter ({ text }) {
+export function TextFormatter ({ text, role }) {
 
     const formatText = (input) => {
       const elements = [];
@@ -38,14 +38,21 @@ export function TextFormatter ({ text }) {
     };
   
     return (
-      <div>
-        {formatText(text)}
-      </div>
+        <>
+        <div className=''>
+            {role}
+        </div>
+        <div>
+            {formatText(text)}
+        </div>
+        </>
+
     );
 };
   
 TextFormatter.propTypes = {
-text: PropTypes.string.isRequired
+text: PropTypes.string.isRequired,
+role: PropTypes.string.isRequired
 }
 
 export const MemoizedTextFormatter = memo(TextFormatter)

@@ -2,15 +2,17 @@ import { useRef, useState, useEffect, useCallback} from 'react';
 import './App.css'
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import GeminieLogoSvg from './svg/GeminieLogoSvg';
-import PropTypes from 'prop-types'
+import { MemoizedTextFormatter } from './component/TextFormatter';
 function App() { 
+
   const API_KEY = 'AIzaSyCPiMP9ouF6cjgTlhiPPZXBWsrdRNZckd8'
   const genAI = new GoogleGenerativeAI(API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-pro"});
   const textareaRef = useRef(null);
+  const chatEndRef = useRef(null); 
   const [input, setInput] = useState('');
   const [chat, setChat]=useState([])    
-  const chatEndRef = useRef(null);  // Create a ref for the chat container
+ 
 
   const scrollToBottom = useCallback(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,7 +48,7 @@ function App() {
 
   useEffect(() => {
     adjustHeight();
-  }, [adjustHeight, input]);
+  }, [input, adjustHeight]);
 
   useEffect(() => {
     scrollToBottom();  // Scroll to bottom every time the chat updates
@@ -54,7 +56,7 @@ function App() {
 
   return (
     <>
-      <div className=' w-full h-screen flex flex-nowrap relative'>
+      <div className=' w-full h-screen flex flex-nowrap relative select-none'>
         <div className=' w-[280px] bg-gray-50  '>
           <div className=' px-4 py-6'>
             <div className=' w-full flex items-center px-1  space-x-2'>
@@ -91,7 +93,7 @@ function App() {
                     {r.name}
                   </div>
                   <div>
-                    <TextFormatter text={r.text} />
+                    <MemoizedTextFormatter key={i} text={r.text} />
                   </div>                  
                 </div>
               ))}              
@@ -152,52 +154,6 @@ function App() {
 
 
 
-const TextFormatter = ({ text }) => {
-
-  const formatText = (input) => {
-    const elements = [];
-    let cursor = 0;
-
-    while (cursor < input.length) {
-      if (input[cursor] === '*' && input[cursor + 1] === '*') {
-        const end = input.indexOf('**', cursor + 2);
-        if (end !== -1) {
-          elements.push(<h1 >{input.substring(cursor + 2, end)}</h1>);
-          cursor = end + 2;
-          continue;
-        }
-      } else if (input[cursor] === '`') {    
-        const end = input.indexOf('`', cursor + 1);
-        if (end !== -1) {
-          elements.push(<code className='!whitespace-pre'>{input.substring(cursor + 1, end)}</code>);
-          cursor = end + 1;
-          continue;
-        }
-      }
-
-      const nextSpecialChar = input.slice(cursor).search(/[*`]/);
-      if (nextSpecialChar !== -1) {
-        elements.push(input.substring(cursor, cursor + nextSpecialChar));
-        cursor += nextSpecialChar;
-      } else {
-        elements.push(<p >{input.substring(cursor)}</p>);
-        break;
-      }
-    }
-
-    return elements;
-  };
-
-  return (
-    <div>
-      {formatText(text)}
-    </div>
-  );
-};
-
-TextFormatter.propTypes = {
-  text: PropTypes.string.isRequired
-}
 
 export default App
 

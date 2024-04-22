@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback} from 'react';
 import './App.css'
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import GeminieLogoSvg from './svg/GeminieLogoSvg';
-import { MemoizedTextFormatter } from './component/TextFormatter';
+import Markdown from './component/MarkDown';
 function App() { 
 
   const API_KEY = 'AIzaSyCPiMP9ouF6cjgTlhiPPZXBWsrdRNZckd8'
@@ -11,7 +11,8 @@ function App() {
   const textareaRef = useRef(null);
   const chatEndRef = useRef(null); 
   const [input, setInput] = useState('');
-  const [chat, setChat]=useState([])    
+  const [chat, setChat]=useState([])
+ 
  
   const scrollToBottom = useCallback(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -39,10 +40,19 @@ function App() {
     const prompt = input    
     setInput('');
     setChat((prev)=>[...prev, {name:'나', text:prompt}])
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
-    setChat((prev)=>[...prev, {name:'Geminie', text:text}])        
+    const data = await model.generateContentStream(prompt);
+    for await (const chunk of data.stream) {
+      setChat((prev)=>{
+        const lastMessage = prev[prev.length - 1];  
+        if (lastMessage && lastMessage.name === 'Gemini') {
+          prev[prev.length - 1].text += chunk.candidates[0].content.parts[0].text
+          return [...prev]
+        } else {       
+          return [...prev, { name: 'Gemini', text: chunk.candidates[0].content.parts[0].text }];
+        }
+      })
+    }    
+       
   };
 
   useEffect(() => {
@@ -55,7 +65,7 @@ function App() {
 
   return (
     <>
-      <div className=' w-full h-screen flex flex-nowrap relative select-none'>
+      <div className=' w-full h-screen flex flex-nowrap relative '>
         <div className=' w-[280px] bg-gray-50  '>
           <div className=' px-4 py-6'>
             <div className=' w-full flex items-center px-1  space-x-2'>
@@ -87,10 +97,16 @@ function App() {
           <div className=' w-full flex justify-center overflow-y-auto h-[85vh]'>
             <div className=' w-[60vw]'>
               {chat.map((r, i)=>(
-                <div key={i} className=' mb-6' ref={chatEndRef}> 
-                    <MemoizedTextFormatter key={i} role={r.name} text={r.text} />                            
+                <div key={i} className=' mb-6' > 
+                <div>
+                  {r.name}
                 </div>
-              ))}              
+                <div>
+                  <Markdown text={r.text}/> 
+                </div>                    
+                </div>
+              ))}      
+              <div ref={chatEndRef} />        
             </div>            
           </div>
 
@@ -147,6 +163,5 @@ function App() {
 
 
 export default App
-
 
 

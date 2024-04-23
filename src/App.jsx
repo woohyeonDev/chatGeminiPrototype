@@ -11,8 +11,7 @@ function App() {
   const textareaRef = useRef(null);
   const chatEndRef = useRef(null); 
   const [input, setInput] = useState('');
-  const [chat, setChat]=useState([])
- 
+  const [chat, setChat]=useState([]) 
  
   const scrollToBottom = useCallback(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -31,8 +30,9 @@ function App() {
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' && !event.shiftKey) { 
-      event.preventDefault(); 
+      event.preventDefault(); // 기본 동작 방지
       sendMessage(); 
+      event.target.value=''
     }
   };
   
@@ -41,18 +41,22 @@ function App() {
     setInput('');
     setChat((prev)=>[...prev, {name:'나', text:prompt}])
     const data = await model.generateContentStream(prompt);
+    let messageBuffer = '';
     for await (const chunk of data.stream) {
+      messageBuffer = chunk.candidates[0].content.parts[0].text  
       setChat((prev)=>{
-        const lastMessage = prev[prev.length - 1];  
+        const lastMessage = prev[prev.length - 1];         
         if (lastMessage && lastMessage.name === 'Gemini') {
-          prev[prev.length - 1].text += chunk.candidates[0].content.parts[0].text
+          prev[prev.length - 1].text += messageBuffer
+          messageBuffer = '';
           return [...prev]
         } else {       
-          return [...prev, { name: 'Gemini', text: chunk.candidates[0].content.parts[0].text }];
+          const next = [...prev, { name: 'Gemini', text: messageBuffer}];
+          messageBuffer = '';
+          return next
         }
-      })
-    }    
-       
+      })     
+    }       
   };
 
   useEffect(() => {
@@ -80,8 +84,8 @@ function App() {
         <div className=' relative w-full h-full '>
 
 
-          <div className='h-[5vh] '>
-            <div className=' sticky top-0 mb-1.5 flex items-center justify-between z-10 h-14 p-2 px-4 font-semibold bg-token-main-surface-primar '>
+          <div className='h-[8vh] bg-white'>
+            <div className='  flex items-center justify-between z-10 h-14 p-2 px-4 font-semibold bg-token-main-surface-primar '>
               <div className=' flex space-x-2'>
                 <div className=''>
                   Gemini
@@ -94,11 +98,11 @@ function App() {
           </div>
 
 
-          <div className=' w-full flex justify-center overflow-y-auto h-[85vh]'>
+          <div id="scrollHide" className=' w-full flex justify-center overflow-y-scroll h-[80vh]'>
             <div className=' w-[60vw]'>
               {chat.map((r, i)=>(
                 <div key={i} className=' mb-6' > 
-                <div>
+                <div className=' font-bold '>
                   {r.name}
                 </div>
                 <div>
@@ -110,15 +114,16 @@ function App() {
             </div>            
           </div>
 
-          <div className=' absolute bottom-0 w-full flex justify-center '>
+          <div className=' absolute bottom-4 w-full flex justify-center '>
             <div className=' w-[60vw] bg-whtie flex justify-center flex-wrap'>
               <div className='w-full flex justify-center'>
-                <div className=' overflow-hidden flex flex-col w-full flex-grow relative border rounded-2xl shadow-[0_2px_6px_rgba(0,0,0,.05)]'>                
+                <div className=' overflow-hidden flex flex-col w-full flex-grow relative border  shadow-[0_2px_6px_rgba(0,0,0,.05)]'>                
                     <textarea
                       ref={textareaRef}
                       className="        
                         sticky             
                         m-0 border-0 bg-transparent
+                        bg-white
                         resize-none
                         focus:ring-0
                         focus-visible:ring-0
@@ -133,11 +138,10 @@ function App() {
                       onKeyDown={handleKeyDown}               
                       rows="1"
                       placeholder='메시지 내용: Gemini PRO'
-                    />                    
-                 
-                  <button onClick={sendMessage} disabled="" className="absolute rounded-lg  border-black bg-black p-0.5 text-white transition-colors enabled:bg-black disabled:text-gray-400 disabled:opacity-10  md:bottom-3 md:right-5 " data-testid="send-button">
+                    />                           
+                  <button onClick={sendMessage} disabled="" className="absolute   border-black bg-black p-0.5 text-white transition-colors enabled:bg-black disabled:text-gray-400 disabled:opacity-10  md:bottom-3 md:right-5 " data-testid="send-button">
                     <span className="" data-state="closed">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white ">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-white ">
                         <path d="M7 11L12 6L17 11M12 18V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         </path>
                       </svg>

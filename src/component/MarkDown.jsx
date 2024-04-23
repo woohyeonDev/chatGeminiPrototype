@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import {Prism as SyntaxHighlighter} from 'react-syntax-highlighter'
-import {dark} from 'react-syntax-highlighter/dist/esm/styles/prism'
+import {dracula} from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 
 
@@ -17,11 +17,11 @@ export default function Markdown({text}) {
             // 사용된 언어가 표시되어있는 경우
         	return !inline && match ? (
           	<SyntaxHighlighter
-				{...props}
-				children={String(children).replace(/\n$/, '')}
-				style={dark}
-				language={match[1]}
-				PreTag="div"
+            {...props}
+            children={String(children).replace(/\n$/, '')}
+            style={dracula}
+            language={match[1]}
+            PreTag="div"
           />
             // 사용된 언어를 따로 적지 않거나 적합하지 않을 경우
         	) : (
